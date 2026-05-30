@@ -10,7 +10,8 @@ export interface HistoryItem {
   at: number;
 }
 
-const KEY = "rizaai:history";
+const KEY = "nalar:history";
+const LEGACY_KEY = "rizaai:history"; // sebelum rebranding — migrasi sekali jalan
 const MAX = 30;
 
 export function useHistory() {
@@ -18,7 +19,16 @@ export function useHistory() {
 
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(KEY);
+      let raw = localStorage.getItem(KEY);
+      // Migrasi riwayat dari key lama agar data pengguna tidak hilang saat rebrand.
+      if (!raw) {
+        const legacy = localStorage.getItem(LEGACY_KEY);
+        if (legacy) {
+          localStorage.setItem(KEY, legacy);
+          localStorage.removeItem(LEGACY_KEY);
+          raw = legacy;
+        }
+      }
       if (raw) setItems(JSON.parse(raw));
     } catch {
       /* ignore */
@@ -50,7 +60,7 @@ export function useHistory() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `rizaai-riwayat-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `nalar-riwayat-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
   }, [items]);

@@ -1,4 +1,4 @@
-// RizaAi — data model. Dipakai pada Stage 2 (auth + persistensi).
+// Nalar — data model. Dipakai pada Stage 2 (auth + persistensi).
 // MVP berjalan tanpa DB; jalankan `npm run db:push` saat mengaktifkan Stage 2.
 
 generator client {

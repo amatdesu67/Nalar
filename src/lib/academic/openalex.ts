@@ -43,7 +43,7 @@ export async function searchPapers(keywords: string, limit = 18): Promise<Paper[
   if (mailto) params.set("mailto", mailto);
 
   const res = await fetch(`${BASE}?${params.toString()}`, {
-    headers: { "User-Agent": `RizaAi${mailto ? ` (${mailto})` : ""}` },
+    headers: { "User-Agent": `Nalar${mailto ? ` (${mailto})` : ""}` },
     next: { revalidate: 60 * 60 }, // cache 1 jam di sisi Next
   });
 

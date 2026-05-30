@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://rizaai.vercel.app";
-const TITLE = "RizaAi — Mesin Pencari Bukti Ilmiah";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://nalar.vercel.app";
+const TITLE = "Nalar — Mesin Pencari Bukti Ilmiah";
 const DESCRIPTION =
-  "Cari jawaban atas klaim, opini, dan topik debat dengan dukungan paper akademik. Analisis netral berbasis bukti — lihat kedua sisi argumen, kualitas sumber, dan tingkat konsensus ilmiah.";
+  "Berargumen dengan bukti. Cari jawaban atas klaim, opini, dan topik debat dengan dukungan paper akademik — analisis netral, kedua sisi argumen, kualitas sumber, dan tingkat konsensus ilmiah.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
     default: TITLE,
-    template: "%s — RizaAi",
+    template: "%s — Nalar",
   },
   description: DESCRIPTION,
   keywords: [
@@ -20,16 +20,16 @@ export const metadata: Metadata = {
     "konsensus ilmiah",
     "OpenAlex",
     "fact check",
-    "RizaAi",
+    "Nalar",
   ],
-  applicationName: "RizaAi",
-  authors: [{ name: "RizaAi" }],
+  applicationName: "Nalar",
+  authors: [{ name: "Nalar" }],
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     locale: "id_ID",
     url: SITE_URL,
-    siteName: "RizaAi",
+    siteName: "Nalar",
     title: TITLE,
     description: DESCRIPTION,
   },

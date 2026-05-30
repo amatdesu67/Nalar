@@ -28,7 +28,7 @@ export default function Home() {
       await importData(file);
       setError(null);
     } catch {
-      setError("Gagal memuat file riwayat. Pastikan itu file backup .json dari RizaAi.");
+      setError("Gagal memuat file riwayat. Pastikan itu file backup .json dari Nalar.");
     }
   };
 
@@ -98,8 +98,8 @@ export default function Home() {
               <FlaskConical size={20} />
             </span>
             <div>
-              <h1 className="font-serif text-2xl leading-none text-fg">RizaAi</h1>
-              <p className="text-xs text-muted">Mesin pencari bukti ilmiah</p>
+              <h1 className="font-serif text-2xl leading-none text-fg">Nalar</h1>
+              <p className="text-xs text-muted">Berargumen dengan bukti</p>
             </div>
           </div>
           {!result && !loading && (
@@ -222,7 +222,7 @@ export default function Home() {
         </div>
 
         <p className="px-1 text-[10px] leading-relaxed text-muted/70">
-          RizaAi menyusun ringkasan dari abstrak paper publik (OpenAlex). Selalu verifikasi ke sumber asli sebelum
+          Nalar menyusun ringkasan dari abstrak paper publik (OpenAlex). Selalu verifikasi ke sumber asli sebelum
           mengambil keputusan penting.
         </p>
       </aside>
