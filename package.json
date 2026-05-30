@@ -1,8 +1,8 @@
 {
-  "name": "rizaai",
+  "name": "nalar",
   "version": "0.1.0",
   "private": true,
-  "description": "RizaAi — mesin pencari argumen & bukti ilmiah berbasis paper akademik",
+  "description": "Nalar — mesin pencari argumen & bukti ilmiah berbasis paper akademik",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
