@@ -1,0 +1,45 @@
+// RizaAi — data model. Dipakai pada Stage 2 (auth + persistensi).
+// MVP berjalan tanpa DB; jalankan `npm run db:push` saat mengaktifkan Stage 2.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  image     String?
+  provider  String   @default("email") // "email" | "google"
+  createdAt DateTime @default(now())
+  searches  Search[]
+}
+
+model Search {
+  id           String   @id @default(cuid())
+  userId       String?
+  user         User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question     String
+  keywords     String[]
+  // Ringkasan hasil disimpan sebagai JSON (lihat AnalysisResult di src/lib/types.ts)
+  result       Json
+  papersCount  Int      @default(0)
+  consensus    String?  // "strong_support" | "mixed" | "strong_against" | "insufficient"
+  confidence   Int?     // 0-100
+  createdAt    DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+// Cache pencarian paper agar hemat kuota API & lebih cepat.
+model PaperCache {
+  id        String   @id @default(cuid())
+  queryHash String   @unique
+  payload   Json
+  createdAt DateTime @default(now())
+}

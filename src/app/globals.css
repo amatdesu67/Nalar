@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-serif: "Fraunces", "Iowan Old Style", Georgia, serif;
+  --font-sans: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
+  --bg: 30 8% 6%;
+  --surface: 30 7% 9%;
+  --border: 30 6% 16%;
+  --fg: 40 30% 92%;
+  --muted: 36 8% 58%;
+  --accent: 38 92% 58%;
+  --pro: 158 64% 48%;
+  --con: 0 72% 60%;
+}
+
+* { border-color: hsl(var(--border)); }
+
+html { color-scheme: dark; }
+
+body {
+  background:
+    radial-gradient(110% 80% at 50% -10%, hsl(38 60% 14% / 0.35), transparent 60%),
+    hsl(var(--bg));
+  color: hsl(var(--fg));
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Tekstur grain halus untuk kedalaman */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.025;
+  z-index: 1;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+::selection { background: hsl(var(--accent) / 0.3); }
+
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 99px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+.font-serif { font-feature-settings: "ss01"; }
