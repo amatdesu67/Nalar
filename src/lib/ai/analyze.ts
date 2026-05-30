@@ -89,6 +89,7 @@ export async function analyze(question: string): Promise<AnalysisResult> {
     question,
     keywords: keywords.split(/\s+/).filter(Boolean),
     papersAnalyzed: papers.length,
+    lowEvidence: papers.length < 5,
     consensus: raw.consensus ?? "insufficient",
     confidence: Math.max(0, Math.min(100, raw.confidence ?? 0)),
     summary: raw.summary ?? "",

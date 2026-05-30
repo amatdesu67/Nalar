@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { GraduationCap, Sparkles, AlertCircle } from "lucide-react";
+import { GraduationCap, Sparkles, AlertCircle, AlertTriangle, RotateCcw } from "lucide-react";
 import type { AnalysisResult } from "@/lib/types";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -9,12 +9,34 @@ import { EvidenceColumn } from "@/components/evidence-column";
 import { DebateMode } from "@/components/debate-mode";
 import { PaperCard } from "@/components/paper-card";
 
-export function ResultView({ result }: { result: AnalysisResult }) {
+export function ResultView({ result, onReset }: { result: AnalysisResult; onReset?: () => void }) {
   const [eli, setEli] = useState(false);
   const qualityOf = (id: string) => result.quality.find((q) => q.paperId === id);
 
   return (
     <div className="animate-fade-up space-y-6">
+      {onReset && (
+        <div className="flex justify-end">
+          <Button variant="outline" size="sm" onClick={onReset}>
+            <RotateCcw size={14} />
+            Cari lagi
+          </Button>
+        </div>
+      )}
+
+      {result.lowEvidence && (
+        <div className="flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-300">
+          <AlertTriangle size={16} className="mt-0.5 shrink-0" />
+          <div>
+            <p className="font-medium">Bukti terbatas</p>
+            <p className="text-amber-200/80">
+              Hanya {result.papersAnalyzed} paper relevan yang ditemukan. Kesimpulan di bawah berisiko menyesatkan —
+              perlakukan sebagai indikasi awal, bukan jawaban final, dan verifikasi ke sumber asli.
+            </p>
+          </div>
+        </div>
+      )}
+
       <ConsensusMeter consensus={result.consensus} confidence={result.confidence} papers={result.papersAnalyzed} />
 
       <Tabs defaultValue="summary" className="w-full">

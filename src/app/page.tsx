@@ -12,6 +12,7 @@ export default function Home() {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(0);
+  const [elapsed, setElapsed] = useState(0);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { items, add, clear } = useHistory();
@@ -24,9 +25,16 @@ export default function Home() {
     setResult(null);
     setError(null);
     setStep(0);
-    // animasi langkah (perkiraan; langkah terakhir berhenti sampai respons)
+    setElapsed(0);
+    // Satu timer untuk progres langkah (perkiraan) + hitung detik berlalu,
+    // dipakai untuk pesan "masih memproses" saat respons lama.
     timer.current && clearInterval(timer.current);
-    timer.current = setInterval(() => setStep((s) => Math.min(s + 1, 3)), 2600);
+    const start = Date.now();
+    timer.current = setInterval(() => {
+      const sec = (Date.now() - start) / 1000;
+      setElapsed(Math.floor(sec));
+      setStep(Math.min(Math.floor(sec / 2.6), 3));
+    }, 500);
 
     try {
       const res = await fetch("/api/analyze", {
@@ -44,11 +52,24 @@ export default function Home() {
         papers: data.papersAnalyzed,
       });
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Terjadi kesalahan.");
+      // Bedakan gangguan jaringan dari error server agar pesannya membantu.
+      const msg = e instanceof Error ? e.message : "";
+      if (e instanceof TypeError || /failed to fetch|network/i.test(msg)) {
+        setError("Tidak bisa terhubung ke server. Cek koneksi internet kamu, lalu coba lagi.");
+      } else {
+        setError(msg || "Terjadi kesalahan tak terduga. Coba lagi.");
+      }
     } finally {
       timer.current && clearInterval(timer.current);
       setLoading(false);
     }
+  };
+
+  const reset = () => {
+    setResult(null);
+    setError(null);
+    setQuery("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const totalPapers = items.reduce((a, b) => a + b.papers, 0);
@@ -78,7 +99,7 @@ export default function Home() {
         <SearchBar onSearch={run} loading={loading} value={query} onChange={setQuery} />
 
         <div className="mt-8">
-          {loading && <LoadingState step={step} />}
+          {loading && <LoadingState step={step} elapsed={elapsed} />}
           {error && (
             <div className="flex items-start gap-2 rounded-xl border border-con/30 bg-con/5 p-4 text-sm text-con">
               <AlertTriangle size={16} className="mt-0.5 shrink-0" />
@@ -88,7 +109,7 @@ export default function Home() {
               </div>
             </div>
           )}
-          {result && !loading && <ResultView result={result} />}
+          {result && !loading && <ResultView result={result} onReset={reset} />}
         </div>
       </main>
 

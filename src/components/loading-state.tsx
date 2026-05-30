@@ -7,7 +7,11 @@ const STEPS = [
   "Menganalisis bukti dengan AI…",
 ];
 
-export function LoadingState({ step }: { step: number }) {
+export function LoadingState({ step, elapsed = 0 }: { step: number; elapsed?: number }) {
+  // Saat sudah di langkah terakhir tapi respons belum datang, beri tahu user
+  // bahwa analisa kompleks memang butuh waktu — supaya tidak terasa "hang".
+  const slow = step >= STEPS.length - 1 && elapsed >= 12;
+
   return (
     <div className="animate-fade-up space-y-6">
       <div className="rounded-xl border border-border bg-surface/40 p-5">
@@ -30,6 +34,11 @@ export function LoadingState({ step }: { step: number }) {
             </li>
           ))}
         </ul>
+        {slow && (
+          <p className="mt-3 border-t border-border/60 pt-3 text-xs text-muted">
+            Masih memproses paper… analisa kompleks bisa memakan waktu hingga ~30 detik. ({elapsed}s)
+          </p>
+        )}
       </div>
       <Skeleton className="h-24 w-full" />
       <div className="grid gap-3 sm:grid-cols-2">

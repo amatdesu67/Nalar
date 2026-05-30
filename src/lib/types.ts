@@ -65,6 +65,7 @@ export interface AnalysisResult {
   question: string;
   keywords: string[];
   papersAnalyzed: number;
+  lowEvidence: boolean;   // true bila paper relevan < 5 (hasil patut diragukan)
   consensus: ConsensusLevel;
   confidence: number;     // 0-100
   summary: string;        // ringkasan netral
