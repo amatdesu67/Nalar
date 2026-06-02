@@ -1,0 +1,5 @@
+node_modules/
+# Sesi WhatsApp — JANGAN di-commit (berisi kredensial login akun).
+auth/
+*.log
+.env

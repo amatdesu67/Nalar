@@ -1,0 +1,157 @@
+// Bot WhatsApp Nalar via Baileys (QR pairing, nomor pribadi).
+// Listen pesan masuk -> panggil API Nalar (/api/analyze) -> balas ringkasan.
+
+const {
+  default: makeWASocket,
+  useMultiFileAuthState,
+  DisconnectReason,
+  fetchLatestBaileysVersion,
+} = require("@whiskeysockets/baileys");
+const qrcode = require("qrcode-terminal");
+const pino = require("pino");
+
+const { formatReply, HELP_TEXT } = require("./format");
+
+// --- Konfigurasi ---
+const NALAR_API_URL = process.env.NALAR_API_URL || "http://localhost:3000/api/analyze";
+const AUTH_DIR = "./auth";
+const RATE_LIMIT_MAX = 5; // pesan per jendela
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const MIN_CLAIM_LEN = 8; // di bawah ini dianggap bukan klaim -> kirim bantuan
+
+// --- Rate limit sederhana per nomor (fixed window, in-memory) ---
+const rateStore = new Map();
+function rateLimited(jid) {
+  const now = Date.now();
+  const hit = rateStore.get(jid);
+  if (!hit || hit.resetAt <= now) {
+    rateStore.set(jid, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return false;
+  }
+  hit.count += 1;
+  return hit.count > RATE_LIMIT_MAX;
+}
+
+// --- Panggil API Nalar ---
+async function analyzeClaim(question) {
+  const res = await fetch(NALAR_API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ question }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.error || `API Nalar error ${res.status}`);
+  }
+  return data;
+}
+
+// Ambil teks dari berbagai bentuk pesan WhatsApp.
+function extractText(msg) {
+  const m = msg.message || {};
+  return (
+    m.conversation ||
+    m.extendedTextMessage?.text ||
+    m.imageMessage?.caption ||
+    m.videoMessage?.caption ||
+    ""
+  ).trim();
+}
+
+async function handleIncoming(sock, msg) {
+  const jid = msg.key.remoteJid;
+  // Abaikan pesan dari diri sendiri, grup, dan status broadcast.
+  if (!jid || msg.key.fromMe) return;
+  if (jid.endsWith("@g.us") || jid === "status@broadcast") return;
+
+  const text = extractText(msg);
+  if (!text) return;
+
+  if (rateLimited(jid)) {
+    await sock.sendMessage(jid, {
+      text: "⏳ Terlalu banyak permintaan. Coba lagi sebentar lagi ya.",
+    });
+    return;
+  }
+
+  // Pesan terlalu pendek / sapaan -> kirim bantuan.
+  if (text.length < MIN_CLAIM_LEN) {
+    await sock.sendMessage(jid, { text: HELP_TEXT });
+    return;
+  }
+
+  try {
+    await sock.sendPresenceUpdate("composing", jid);
+    await sock.sendMessage(jid, {
+      text: "🔬 Sebentar ya, sedang mencari & menganalisis bukti ilmiah…",
+    });
+    const result = await analyzeClaim(text);
+    await sock.sendMessage(jid, { text: formatReply(result) });
+  } catch (err) {
+    const m = String(err.message || "").toLowerCase();
+    const friendly = m.includes("tidak ada paper")
+      ? "Tidak menemukan paper relevan. Coba klaim yang lebih spesifik."
+      : m.includes("pendek") || m.includes("valid")
+        ? err.message
+        : "Maaf, terjadi kendala saat menganalisis. Coba lagi sebentar lagi.";
+    await sock.sendMessage(jid, { text: `⚠️ ${friendly}` }).catch(() => {});
+  } finally {
+    await sock.sendPresenceUpdate("paused", jid).catch(() => {});
+  }
+}
+
+async function start() {
+  const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
+  const { version } = await fetchLatestBaileysVersion();
+
+  const sock = makeWASocket({
+    version,
+    auth: state,
+    // QR ditangani manual lewat event di bawah (printQRInTerminal deprecated).
+    printQRInTerminal: false,
+    logger: pino({ level: "silent" }),
+    browser: ["Nalar Bot", "Chrome", "1.0.0"],
+  });
+
+  sock.ev.on("creds.update", saveCreds);
+
+  sock.ev.on("connection.update", (update) => {
+    const { connection, lastDisconnect, qr } = update;
+
+    if (qr) {
+      console.log("\n📱 Scan QR ini di WhatsApp > Perangkat tertaut > Tautkan perangkat:\n");
+      qrcode.generate(qr, { small: true });
+    }
+
+    if (connection === "open") {
+      console.log("✅ Bot Nalar terhubung ke WhatsApp.");
+    }
+
+    if (connection === "close") {
+      const statusCode = lastDisconnect?.error?.output?.statusCode;
+      const loggedOut = statusCode === DisconnectReason.loggedOut;
+      if (loggedOut) {
+        console.log("❌ Sesi logout. Hapus folder ./auth lalu jalankan ulang untuk scan QR baru.");
+      } else {
+        console.log(`🔄 Koneksi putus (code ${statusCode ?? "?"}), mencoba menyambung ulang…`);
+        start();
+      }
+    }
+  });
+
+  sock.ev.on("messages.upsert", async ({ messages, type }) => {
+    if (type !== "notify") return; // hanya pesan baru
+    for (const msg of messages) {
+      try {
+        await handleIncoming(sock, msg);
+      } catch (e) {
+        console.error("Gagal memproses pesan:", e);
+      }
+    }
+  });
+}
+
+start().catch((e) => {
+  console.error("Gagal memulai bot:", e);
+  process.exit(1);
+});
