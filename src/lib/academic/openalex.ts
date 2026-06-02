@@ -24,7 +24,7 @@ interface OAWork {
   abstract_inverted_index: Record<string, number[]> | null;
   open_access?: { is_oa?: boolean };
   primary_location?: { landing_page_url?: string | null; source?: { display_name?: string } | null } | null;
-  authorships?: { author?: { display_name?: string } }[];
+  authorships?: { author?: { display_name?: string }; institutions?: { display_name?: string }[] }[];
   primary_topic?: { field?: { display_name?: string } | null } | null;
 }
 
@@ -71,6 +71,14 @@ export async function searchPapers(keywords: string, limit = 18): Promise<Paper[
       type: w.type ?? null,
       isRetracted: !!w.is_retracted,
       field: w.primary_topic?.field?.display_name ?? null,
+      institutions: Array.from(
+        new Set(
+          (w.authorships ?? [])
+            .flatMap((a) => a.institutions ?? [])
+            .map((i) => i.display_name)
+            .filter((n): n is string => !!n)
+        )
+      ),
     };
   });
 }

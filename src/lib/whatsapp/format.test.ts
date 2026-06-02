@@ -17,6 +17,7 @@ function paper(over: Partial<Paper> = {}): Paper {
     type: "article",
     isRetracted: false,
     field: "Medicine",
+    institutions: [],
     ...over,
   };
 }

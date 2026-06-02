@@ -19,6 +19,7 @@ function makePaper(overrides: Partial<Paper> = {}): Paper {
     type: "article",
     isRetracted: false,
     field: "Medicine",
+    institutions: [],
     ...overrides,
   };
 }
