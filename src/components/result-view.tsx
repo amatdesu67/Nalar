@@ -5,6 +5,7 @@ import { toBibTeXAll } from "@/lib/cite";
 import { applyFilters, deriveBounds, emptyFilters, isActive, type PaperFilters } from "@/lib/filter-papers";
 import { FilterPanel } from "@/components/filter-panel";
 import { SourceDiversity } from "@/components/source-diversity";
+import { ConsensusTimeline } from "@/components/consensus-timeline";
 import type { AnalysisResult } from "@/lib/types";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -134,6 +135,9 @@ export function ResultView({ result, onReset }: { result: AnalysisResult; onRese
               </ul>
             </div>
           )}
+
+          {/* Timeline: pergeseran pandangan ilmiah dari tahun ke tahun */}
+          <ConsensusTimeline result={result} />
 
           {/* Diversitas sumber: peringatan bila bukti terkonsentrasi */}
           <SourceDiversity papers={result.papers} />
