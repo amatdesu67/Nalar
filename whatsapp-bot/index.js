@@ -43,11 +43,25 @@ function rateLimited(jid) {
 
 // --- Panggil API Nalar ---
 async function analyzeClaim(question) {
-  const res = await fetch(NALAR_API_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question }),
-  });
+  // Timeout 90 dtk: analisa (2x panggilan AI + OpenAlex) bisa lama, tapi jangan
+  // menggantung selamanya bila server tak merespons.
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 90_000);
+  let res;
+  try {
+    res = await fetch(NALAR_API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question }),
+      signal: ctrl.signal,
+    });
+  } catch (e) {
+    // ECONNREFUSED = server Nalar belum jalan; AbortError = timeout.
+    if (e?.name === "AbortError") throw new Error("Analisa terlalu lama (timeout). Coba lagi.");
+    throw new Error(`SERVER_DOWN: tidak bisa menghubungi ${NALAR_API_URL}`);
+  } finally {
+    clearTimeout(timer);
+  }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     throw new Error(data.error || `API Nalar error ${res.status}`);
@@ -97,12 +111,17 @@ async function handleIncoming(sock, msg) {
     const result = await analyzeClaim(text);
     await sock.sendMessage(jid, { text: formatReply(result) });
   } catch (err) {
-    const m = String(err.message || "").toLowerCase();
-    const friendly = m.includes("tidak ada paper")
-      ? "Tidak menemukan paper relevan. Coba klaim yang lebih spesifik."
-      : m.includes("pendek") || m.includes("valid")
-        ? err.message
-        : "Maaf, terjadi kendala saat menganalisis. Coba lagi sebentar lagi.";
+    // Log ke terminal agar penyebab gagal terlihat saat diagnosa.
+    console.error("Gagal menganalisis:", err.message);
+    const msg = String(err.message || "");
+    const m = msg.toLowerCase();
+    const friendly = m.includes("server_down")
+      ? "Server Nalar belum aktif. Pastikan `npm run dev` jalan di komputer host."
+      : m.includes("tidak ada paper")
+        ? "Tidak menemukan paper relevan. Coba klaim yang lebih spesifik."
+        : m.includes("pendek") || m.includes("valid") || m.includes("timeout")
+          ? msg
+          : "Maaf, terjadi kendala saat menganalisis. Coba lagi sebentar lagi.";
     await sock.sendMessage(jid, { text: `⚠️ ${friendly}` }).catch(() => {});
   } finally {
     await sock.sendPresenceUpdate("paused", jid).catch(() => {});
