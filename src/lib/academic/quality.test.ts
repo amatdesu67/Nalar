@@ -18,6 +18,7 @@ function makePaper(overrides: Partial<Paper> = {}): Paper {
     isOpenAccess: false,
     type: "article",
     isRetracted: false,
+    field: "Medicine",
     ...overrides,
   };
 }

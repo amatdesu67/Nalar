@@ -16,6 +16,7 @@ function paper(over: Partial<Paper> = {}): Paper {
     isOpenAccess: true,
     type: "article",
     isRetracted: false,
+    field: "Medicine",
     ...over,
   };
 }

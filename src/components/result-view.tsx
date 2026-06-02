@@ -1,7 +1,9 @@
 "use client";
-import { useState } from "react";
-import { GraduationCap, Sparkles, AlertCircle, AlertTriangle, RotateCcw, MessageSquareQuote, Languages, Download } from "lucide-react";
+import { useMemo, useState } from "react";
+import { GraduationCap, Sparkles, AlertCircle, AlertTriangle, RotateCcw, MessageSquareQuote, Languages, Download, SlidersHorizontal } from "lucide-react";
 import { toBibTeXAll } from "@/lib/cite";
+import { applyFilters, deriveBounds, emptyFilters, isActive, type PaperFilters } from "@/lib/filter-papers";
+import { FilterPanel } from "@/components/filter-panel";
 import type { AnalysisResult } from "@/lib/types";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -14,6 +16,11 @@ import { ShareCard } from "@/components/share-card";
 export function ResultView({ result, onReset }: { result: AnalysisResult; onReset?: () => void }) {
   const [eli, setEli] = useState(false);
   const [translateAll, setTranslateAll] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const bounds = useMemo(() => deriveBounds(result.papers), [result.papers]);
+  const [filters, setFilters] = useState<PaperFilters>(emptyFilters);
+  const filteredPapers = useMemo(() => applyFilters(result.papers, filters), [result.papers, filters]);
+  const filtersActive = isActive(filters, bounds);
   const qualityOf = (id: string) => result.quality.find((q) => q.paperId === id);
 
   function exportAllCitations() {
@@ -141,31 +148,64 @@ export function ResultView({ result, onReset }: { result: AnalysisResult; onRese
 
         {/* Papers Tab */}
         <TabsContent value="papers" className="mt-6 space-y-4">
-          <div className="flex flex-wrap justify-end gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               variant="outline"
               size="sm"
-              onClick={exportAllCitations}
-              className="border-border/60 hover:border-accent/40 hover:text-accent transition-all duration-300"
+              onClick={() => setShowFilters((v) => !v)}
+              className={`border-border/60 transition-all duration-300 ${showFilters || filtersActive ? "border-accent/40 text-accent" : "hover:border-accent/40 hover:text-accent"}`}
             >
-              <Download size={14} />
-              Export sitasi (.bib)
+              <SlidersHorizontal size={14} />
+              Filter{filtersActive ? ` (${filteredPapers.length}/${result.papers.length})` : ""}
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setTranslateAll((v) => !v)}
-              className={`border-border/60 transition-all duration-300 ${translateAll ? "border-accent/40 text-accent" : "hover:border-accent/40 hover:text-accent"}`}
-            >
-              <Languages size={14} />
-              {translateAll ? "Tampilkan bahasa asli" : "Semua dalam Bahasa Indonesia"}
-            </Button>
+            <div className="ml-auto flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={exportAllCitations}
+                className="border-border/60 hover:border-accent/40 hover:text-accent transition-all duration-300"
+              >
+                <Download size={14} />
+                Export sitasi (.bib)
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setTranslateAll((v) => !v)}
+                className={`border-border/60 transition-all duration-300 ${translateAll ? "border-accent/40 text-accent" : "hover:border-accent/40 hover:text-accent"}`}
+              >
+                <Languages size={14} />
+                {translateAll ? "Tampilkan bahasa asli" : "Semua dalam Bahasa Indonesia"}
+              </Button>
+            </div>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {result.papers.map((p, i) => (
-              <PaperCard key={p.id} paper={p} quality={qualityOf(p.id)} index={i} autoTranslate={translateAll} />
-            ))}
-          </div>
+
+          {showFilters && (
+            <FilterPanel
+              bounds={bounds}
+              filters={filters}
+              onChange={setFilters}
+              onReset={() => setFilters(emptyFilters())}
+            />
+          )}
+
+          {filtersActive && (
+            <p className="text-[12px] text-muted">
+              Menampilkan <span className="font-semibold text-fg">{filteredPapers.length}</span> dari {result.papers.length} paper.
+            </p>
+          )}
+
+          {filteredPapers.length === 0 ? (
+            <p className="rounded-xl border border-border/60 bg-surface/20 p-6 text-center text-sm text-muted">
+              Tidak ada paper yang cocok dengan filter. Coba longgarkan filternya.
+            </p>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {filteredPapers.map((p, i) => (
+                <PaperCard key={p.id} paper={p} quality={qualityOf(p.id)} index={i} autoTranslate={translateAll} />
+              ))}
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>

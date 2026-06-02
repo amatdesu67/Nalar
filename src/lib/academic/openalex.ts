@@ -25,6 +25,7 @@ interface OAWork {
   open_access?: { is_oa?: boolean };
   primary_location?: { landing_page_url?: string | null; source?: { display_name?: string } | null } | null;
   authorships?: { author?: { display_name?: string } }[];
+  primary_topic?: { field?: { display_name?: string } | null } | null;
 }
 
 /**
@@ -39,7 +40,7 @@ export async function searchPapers(keywords: string, limit = 18): Promise<Paper[
     sort: "relevance_score:desc",
     filter: "from_publication_date:2005-01-01",
     select:
-      "id,display_name,publication_year,cited_by_count,doi,type,is_retracted,abstract_inverted_index,open_access,primary_location,authorships",
+      "id,display_name,publication_year,cited_by_count,doi,type,is_retracted,abstract_inverted_index,open_access,primary_location,authorships,primary_topic",
   });
   if (mailto) params.set("mailto", mailto);
 
@@ -69,6 +70,7 @@ export async function searchPapers(keywords: string, limit = 18): Promise<Paper[
       isOpenAccess: !!w.open_access?.is_oa,
       type: w.type ?? null,
       isRetracted: !!w.is_retracted,
+      field: w.primary_topic?.field?.display_name ?? null,
     };
   });
 }

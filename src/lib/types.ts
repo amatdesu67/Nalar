@@ -32,6 +32,7 @@ export interface Paper {
   isOpenAccess: boolean;
   type: string | null; // tipe mentah dari sumber
   isRetracted: boolean; // paper ditarik — jangan dijadikan rujukan
+  field: string | null; // bidang ilmu (dari primary_topic.field OpenAlex)
 }
 
 // Hasil penilaian kualitas sumber (deterministik, tanpa AI).
