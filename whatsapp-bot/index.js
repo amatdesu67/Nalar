@@ -6,6 +6,7 @@ const {
   useMultiFileAuthState,
   DisconnectReason,
   fetchLatestBaileysVersion,
+  Browsers,
 } = require("@whiskeysockets/baileys");
 const qrcode = require("qrcode-terminal");
 const pino = require("pino");
@@ -117,8 +118,11 @@ async function start() {
     auth: state,
     // QR ditangani manual lewat event di bawah (printQRInTerminal deprecated).
     printQRInTerminal: false,
-    logger: pino({ level: "silent" }),
-    browser: ["Nalar Bot", "Chrome", "1.0.0"],
+    // Set WA_DEBUG=1 untuk melihat log Baileys (mendiagnosa kegagalan pairing).
+    logger: pino({ level: process.env.WA_DEBUG ? "debug" : "silent" }),
+    // WhatsApp memvalidasi string browser saat pairing code; pakai helper
+    // bawaan Baileys (bukan array custom) agar linking tidak ditolak.
+    browser: Browsers.ubuntu("Chrome"),
   });
 
   sock.ev.on("creds.update", saveCreds);
