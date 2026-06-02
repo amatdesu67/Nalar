@@ -9,6 +9,7 @@ const {
 } = require("@whiskeysockets/baileys");
 const qrcode = require("qrcode-terminal");
 const pino = require("pino");
+const fs = require("fs");
 
 const { formatReply, HELP_TEXT } = require("./format");
 
@@ -22,6 +23,9 @@ const PAIRING_NUMBER = (process.env.WA_PAIRING_NUMBER || "").replace(/\D/g, "");
 const RATE_LIMIT_MAX = 5; // pesan per jendela
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const MIN_CLAIM_LEN = 8; // di bawah ini dianggap bukan klaim -> kirim bantuan
+
+// Hitung percobaan login ulang setelah logout, agar tidak loop tak terbatas.
+let logoutRetries = 0;
 
 // --- Rate limit sederhana per nomor (fixed window, in-memory) ---
 const rateStore = new Map();
@@ -144,6 +148,7 @@ async function start() {
     }
 
     if (connection === "open") {
+      logoutRetries = 0;
       console.log("✅ Bot Nalar terhubung ke WhatsApp.");
     }
 
@@ -151,7 +156,17 @@ async function start() {
       const statusCode = lastDisconnect?.error?.output?.statusCode;
       const loggedOut = statusCode === DisconnectReason.loggedOut;
       if (loggedOut) {
-        console.log("❌ Sesi logout. Hapus folder ./auth lalu jalankan ulang untuk scan QR baru.");
+        // 401 bisa berarti sesi ./auth basi/korup (jebakan login pertama) atau
+        // perangkat di-unlink. Dua-duanya: sesi mati -> bersihkan & login ulang.
+        try {
+          fs.rmSync(AUTH_DIR, { recursive: true, force: true });
+        } catch {}
+        if (logoutRetries++ < 3) {
+          console.log("❌ Sesi tidak valid/logout — membersihkan ./auth & memulai ulang untuk login baru…");
+          setTimeout(start, 2000);
+        } else {
+          console.log("❌ Gagal login berulang. Hapus folder ./auth manual, cek nomor/koneksi, lalu jalankan ulang.");
+        }
       } else {
         console.log(`🔄 Koneksi putus (code ${statusCode ?? "?"}), mencoba menyambung ulang…`);
         start();
