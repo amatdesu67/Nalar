@@ -29,6 +29,27 @@ Saat pertama jalan, **QR code muncul di terminal**. Buka WhatsApp di HP:
 
 > **Setelan → Perangkat tertaut → Tautkan perangkat** → scan QR di terminal.
 
+### Alternatif: login pakai pairing code (tanpa scan QR)
+
+Berguna kalau bot jalan di server/VPS tanpa layar untuk scan. Set
+`WA_PAIRING_NUMBER` ke nomormu (format internasional, **tanpa `+` dan tanpa `0`
+depan**), lalu start:
+
+```bash
+# Windows PowerShell
+$env:WA_PAIRING_NUMBER="6283842570278"; npm start
+
+# macOS / Linux
+WA_PAIRING_NUMBER="6283842570278" npm start
+```
+
+Terminal akan menampilkan **kode 8-digit** (mis. `ABCD-EFGH`). Di HP:
+
+> **Setelan → Perangkat tertaut → Tautkan perangkat → Tautkan dengan nomor
+> telepon** → masukkan kode tersebut.
+
+Kalau `WA_PAIRING_NUMBER` kosong, bot otomatis pakai mode QR.
+
 Setelah tertaut, sesi disimpan di folder `./auth` (lewat `useMultiFileAuthState`),
 jadi **restart tidak perlu scan ulang**. Kalau koneksi putus, bot
 **auto-reconnect** sendiri. Kalau sesi logout, hapus folder `./auth` lalu
@@ -36,9 +57,10 @@ jadi **restart tidak perlu scan ulang**. Kalau koneksi putus, bot
 
 ## Konfigurasi (env opsional)
 
-| Variabel        | Default                              | Keterangan                          |
-| --------------- | ------------------------------------ | ----------------------------------- |
-| `NALAR_API_URL` | `http://localhost:3000/api/analyze`  | Endpoint analyze Nalar              |
+| Variabel             | Default                             | Keterangan                                         |
+| -------------------- | ----------------------------------- | -------------------------------------------------- |
+| `NALAR_API_URL`      | `http://localhost:3000/api/analyze` | Endpoint analyze Nalar                             |
+| `WA_PAIRING_NUMBER`  | _(kosong)_                          | Nomor untuk pairing code; kosong = mode scan QR    |
 
 Contoh pakai API produksi:
 

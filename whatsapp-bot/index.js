@@ -15,6 +15,10 @@ const { formatReply, HELP_TEXT } = require("./format");
 // --- Konfigurasi ---
 const NALAR_API_URL = process.env.NALAR_API_URL || "http://localhost:3000/api/analyze";
 const AUTH_DIR = "./auth";
+// Login pakai pairing code (kode 8-digit) alih-alih scan QR. Isi nomor format
+// internasional tanpa "+" dan tanpa "0" depan, mis. 6283842570278. Kosongkan
+// untuk pakai QR. Berguna kalau bot jalan di server tanpa layar.
+const PAIRING_NUMBER = (process.env.WA_PAIRING_NUMBER || "").replace(/\D/g, "");
 const RATE_LIMIT_MAX = 5; // pesan per jendela
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const MIN_CLAIM_LEN = 8; // di bawah ini dianggap bukan klaim -> kirim bantuan
@@ -115,10 +119,26 @@ async function start() {
 
   sock.ev.on("creds.update", saveCreds);
 
+  // Login via pairing code (sekali, saat belum terdaftar). Beri jeda singkat
+  // agar socket siap sebelum meminta kode.
+  if (PAIRING_NUMBER && !sock.authState.creds.registered) {
+    setTimeout(async () => {
+      try {
+        const code = await sock.requestPairingCode(PAIRING_NUMBER);
+        const pretty = code?.match(/.{1,4}/g)?.join("-") || code;
+        console.log("\n🔢 Pairing code:", pretty);
+        console.log("   Buka WhatsApp > Perangkat tertaut > Tautkan dengan nomor telepon, lalu masukkan kode di atas.\n");
+      } catch (e) {
+        console.error("Gagal meminta pairing code:", e?.message || e);
+      }
+    }, 3000);
+  }
+
   sock.ev.on("connection.update", (update) => {
     const { connection, lastDisconnect, qr } = update;
 
-    if (qr) {
+    // Hanya tampilkan QR bila TIDAK memakai pairing code.
+    if (qr && !PAIRING_NUMBER) {
       console.log("\n📱 Scan QR ini di WhatsApp > Perangkat tertaut > Tautkan perangkat:\n");
       qrcode.generate(qr, { small: true });
     }
