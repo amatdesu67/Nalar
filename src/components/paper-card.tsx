@@ -1,10 +1,46 @@
-import { ExternalLink, Quote, ShieldCheck, AlertTriangle, BookOpen } from "lucide-react";
+"use client";
+import { useEffect, useState } from "react";
+import { ExternalLink, Quote, ShieldCheck, AlertTriangle, BookOpen, Languages, Loader2 } from "lucide-react";
 import type { Paper, QualityScore } from "@/lib/types";
 import { STUDY_LABEL, QUALITY_COLOR } from "@/lib/labels";
 import { Badge } from "@/components/ui/badge";
 import { formatNumber } from "@/lib/utils";
+import { useTranslate } from "@/lib/use-translate";
 
-export function PaperCard({ paper, quality, index }: { paper: Paper; quality?: QualityScore; index: number }) {
+export function PaperCard({
+  paper,
+  quality,
+  index,
+  autoTranslate = false,
+}: {
+  paper: Paper;
+  quality?: QualityScore;
+  index: number;
+  autoTranslate?: boolean;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const [showTranslation, setShowTranslation] = useState(false);
+  const { translation, loading, error, translate } = useTranslate(paper.id, paper.abstract);
+
+  // Toggle global "Tampilkan semua dalam Bahasa Indonesia".
+  useEffect(() => {
+    if (autoTranslate && paper.abstract) {
+      setShowTranslation(true);
+      translate();
+    }
+  }, [autoTranslate, paper.abstract, translate]);
+
+  async function onTranslateClick() {
+    if (translation) {
+      setShowTranslation((v) => !v);
+      return;
+    }
+    setShowTranslation(true);
+    await translate();
+  }
+
+  const displayAbstract = showTranslation && translation ? translation : paper.abstract;
+
   return (
     <div
       className={
@@ -77,6 +113,52 @@ export function PaperCard({ paper, quality, index }: { paper: Paper; quality?: Q
           <Badge className="bg-surface/60 text-[10px]">Peer-reviewed</Badge>
         )}
       </div>
+
+      {/* Abstract + Terjemahan */}
+      {paper.abstract && (
+        <div className="mt-3.5">
+          <div className="flex items-center justify-between gap-2 mb-1.5">
+            <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-muted/60">
+              Abstrak{showTranslation && translation ? " (ID)" : ""}
+            </span>
+            <button
+              type="button"
+              onClick={onTranslateClick}
+              disabled={loading}
+              className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium text-muted/70 transition-colors hover:text-accent disabled:opacity-60"
+            >
+              {loading ? (
+                <>
+                  <Loader2 size={11} className="animate-spin" /> Menerjemahkan…
+                </>
+              ) : translation ? (
+                <>
+                  <Languages size={11} /> {showTranslation ? "Lihat asli" : "Lihat terjemahan"}
+                </>
+              ) : (
+                <>
+                  <Languages size={11} /> Terjemahkan
+                </>
+              )}
+            </button>
+          </div>
+          <p
+            className={`text-[12px] leading-relaxed text-muted/85 ${expanded ? "" : "line-clamp-4"}`}
+          >
+            {displayAbstract}
+          </p>
+          {error && <p className="mt-1 text-[11px] text-con/80">{error}</p>}
+          {(displayAbstract?.length ?? 0) > 220 && (
+            <button
+              type="button"
+              onClick={() => setExpanded((v) => !v)}
+              className="mt-1 text-[11px] font-medium text-accent/80 transition-colors hover:text-accent"
+            >
+              {expanded ? "Ringkas" : "Selengkapnya"}
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Quality Warnings */}
       {quality && quality.warnings.length > 0 && (

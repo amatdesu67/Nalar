@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { GraduationCap, Sparkles, AlertCircle, AlertTriangle, RotateCcw, MessageSquareQuote } from "lucide-react";
+import { GraduationCap, Sparkles, AlertCircle, AlertTriangle, RotateCcw, MessageSquareQuote, Languages } from "lucide-react";
 import type { AnalysisResult } from "@/lib/types";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { PaperCard } from "@/components/paper-card";
 
 export function ResultView({ result, onReset }: { result: AnalysisResult; onReset?: () => void }) {
   const [eli, setEli] = useState(false);
+  const [translateAll, setTranslateAll] = useState(false);
   const qualityOf = (id: string) => result.quality.find((q) => q.paperId === id);
 
   return (
@@ -124,10 +125,23 @@ export function ResultView({ result, onReset }: { result: AnalysisResult; onRese
         </TabsContent>
 
         {/* Papers Tab */}
-        <TabsContent value="papers" className="mt-6 grid gap-4 sm:grid-cols-2">
-          {result.papers.map((p, i) => (
-            <PaperCard key={p.id} paper={p} quality={qualityOf(p.id)} index={i} />
-          ))}
+        <TabsContent value="papers" className="mt-6 space-y-4">
+          <div className="flex justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setTranslateAll((v) => !v)}
+              className={`border-border/60 transition-all duration-300 ${translateAll ? "border-accent/40 text-accent" : "hover:border-accent/40 hover:text-accent"}`}
+            >
+              <Languages size={14} />
+              {translateAll ? "Tampilkan bahasa asli" : "Semua dalam Bahasa Indonesia"}
+            </Button>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {result.papers.map((p, i) => (
+              <PaperCard key={p.id} paper={p} quality={qualityOf(p.id)} index={i} autoTranslate={translateAll} />
+            ))}
+          </div>
         </TabsContent>
       </Tabs>
     </div>
