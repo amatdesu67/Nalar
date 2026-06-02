@@ -1,14 +1,16 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
-import { FlaskConical, History, BarChart3, Trash2, AlertTriangle, Search, Download, Upload } from "lucide-react";
+import { FlaskConical, History, BarChart3, Trash2, AlertTriangle, Search, Download, Upload, GitCompare } from "lucide-react";
 import type { AnalysisResult, ApiError } from "@/lib/types";
 import { CONSENSUS_LABEL } from "@/lib/labels";
 import { SearchBar } from "@/components/search-bar";
 import { LoadingState } from "@/components/loading-state";
 import { ResultView } from "@/components/result-view";
+import { CompareView } from "@/components/compare-view";
 import { useHistory } from "@/lib/use-history";
 
 export default function Home() {
+  const [mode, setMode] = useState<"single" | "compare">("single");
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(0);
@@ -127,26 +129,52 @@ export default function Home() {
             )}
           </header>
 
+          {/* Mode toggle: Cari vs Bandingkan */}
+          <div className="inline-flex rounded-xl border border-border/60 bg-surface/20 p-1">
+            <button
+              onClick={() => setMode("single")}
+              className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all ${
+                mode === "single" ? "bg-accent/15 text-accent" : "text-muted hover:text-fg"
+              }`}
+            >
+              <Search size={13} /> Cari
+            </button>
+            <button
+              onClick={() => setMode("compare")}
+              className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all ${
+                mode === "compare" ? "bg-accent/15 text-accent" : "text-muted hover:text-fg"
+              }`}
+            >
+              <GitCompare size={13} /> Bandingkan
+            </button>
+          </div>
+
           {/* Search Engine Area */}
           <div className="glass-panel rounded-2xl p-5 md:p-6 shadow-xl relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-full filter blur-xl pointer-events-none transition-opacity group-hover:bg-accent/8" />
-            <SearchBar onSearch={run} loading={loading} value={query} onChange={setQuery} />
+            {mode === "single" ? (
+              <SearchBar onSearch={run} loading={loading} value={query} onChange={setQuery} />
+            ) : (
+              <CompareView />
+            )}
           </div>
 
-          {/* Results Area */}
-          <div className="mt-8">
-            {loading && <LoadingState step={step} elapsed={elapsed} />}
-            {error && (
-              <div className="flex items-start gap-3 rounded-xl border border-con/30 bg-con/5 p-4 text-sm text-con animate-fade-up">
-                <AlertTriangle size={18} className="mt-0.5 shrink-0 text-con" />
-                <div>
-                  <p className="font-semibold text-[15px]">Gagal menganalisis</p>
-                  <p className="mt-1 text-con/80 leading-relaxed">{error}</p>
+          {/* Results Area (mode tunggal) */}
+          {mode === "single" && (
+            <div className="mt-8">
+              {loading && <LoadingState step={step} elapsed={elapsed} />}
+              {error && (
+                <div className="flex items-start gap-3 rounded-xl border border-con/30 bg-con/5 p-4 text-sm text-con animate-fade-up">
+                  <AlertTriangle size={18} className="mt-0.5 shrink-0 text-con" />
+                  <div>
+                    <p className="font-semibold text-[15px]">Gagal menganalisis</p>
+                    <p className="mt-1 text-con/80 leading-relaxed">{error}</p>
+                  </div>
                 </div>
-              </div>
-            )}
-            {result && !loading && <ResultView result={result} onReset={reset} />}
-          </div>
+              )}
+              {result && !loading && <ResultView result={result} onReset={reset} />}
+            </div>
+          )}
         </main>
 
         {/* Sidebar Widgets */}
