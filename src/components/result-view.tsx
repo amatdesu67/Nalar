@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
-import { GraduationCap, Sparkles, AlertCircle, AlertTriangle, RotateCcw, MessageSquareQuote, Languages } from "lucide-react";
+import { GraduationCap, Sparkles, AlertCircle, AlertTriangle, RotateCcw, MessageSquareQuote, Languages, Download } from "lucide-react";
+import { toBibTeXAll } from "@/lib/cite";
 import type { AnalysisResult } from "@/lib/types";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,16 @@ export function ResultView({ result, onReset }: { result: AnalysisResult; onRese
   const [eli, setEli] = useState(false);
   const [translateAll, setTranslateAll] = useState(false);
   const qualityOf = (id: string) => result.quality.find((q) => q.paperId === id);
+
+  function exportAllCitations() {
+    const blob = new Blob([toBibTeXAll(result.papers)], { type: "application/x-bibtex" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "nalar-sitasi.bib";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
   return (
     <div className="animate-fade-up space-y-7">
@@ -130,7 +141,16 @@ export function ResultView({ result, onReset }: { result: AnalysisResult; onRese
 
         {/* Papers Tab */}
         <TabsContent value="papers" className="mt-6 space-y-4">
-          <div className="flex justify-end">
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={exportAllCitations}
+              className="border-border/60 hover:border-accent/40 hover:text-accent transition-all duration-300"
+            >
+              <Download size={14} />
+              Export sitasi (.bib)
+            </Button>
             <Button
               variant="outline"
               size="sm"

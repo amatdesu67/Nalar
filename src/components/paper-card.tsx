@@ -6,6 +6,7 @@ import { STUDY_LABEL, QUALITY_COLOR } from "@/lib/labels";
 import { Badge } from "@/components/ui/badge";
 import { formatNumber } from "@/lib/utils";
 import { useTranslate } from "@/lib/use-translate";
+import { CitationBox } from "@/components/citation-box";
 
 export function PaperCard({
   paper,
@@ -186,6 +187,9 @@ export function PaperCard({
           Buka Sumber <ExternalLink size={11} />
         </a>
       </div>
+
+      {/* Export sitasi */}
+      <CitationBox paper={paper} />
     </div>
   );
 }
