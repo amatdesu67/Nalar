@@ -97,14 +97,25 @@ export async function analyze(question: string): Promise<AnalysisResult> {
     throw new Error("Tidak ada paper relevan ditemukan. Coba pertanyaan yang lebih spesifik.");
   }
 
+  // Kecualikan paper yang sudah ditarik (retracted) dari analisis — konsensus &
+  // bukti tidak boleh bersandar pada paper cacat. Tetap ditampilkan ke pengguna
+  // dengan banner peringatan. Indeks [n] pada prompt & refsToIds harus memakai
+  // array yang SAMA (analyzed), agar sitasi tidak tertuju ke paper yang salah.
+  const analyzed = papers.filter((p) => !p.isRetracted);
+  const retractedCount = papers.length - analyzed.length;
+  if (analyzed.length === 0) {
+    throw new Error("Semua paper yang ditemukan telah ditarik (retracted). Coba pertanyaan lain.");
+  }
+
   const quality = scoreAll(papers);
-  const raw = await runAnalysis(question, claim, papers);
+  const raw = await runAnalysis(question, claim, analyzed);
 
   return {
     question,
     keywords: keywords.split(/\s+/).filter(Boolean),
-    papersAnalyzed: papers.length,
-    lowEvidence: papers.length < 5,
+    papersAnalyzed: analyzed.length,
+    retractedCount,
+    lowEvidence: analyzed.length < 5,
     consensus: raw.consensus ?? "insufficient",
     confidence: Math.max(0, Math.min(100, raw.confidence ?? 0)),
     summary: raw.summary ?? "",
@@ -112,12 +123,12 @@ export async function analyze(question: string): Promise<AnalysisResult> {
     supporting: (raw.supporting ?? []).map((e) => ({
       claim: e.claim,
       strength: e.strength,
-      paperIds: refsToIds(e.paperRefs, papers),
+      paperIds: refsToIds(e.paperRefs, analyzed),
     })),
     opposing: (raw.opposing ?? []).map((e) => ({
       claim: e.claim,
       strength: e.strength,
-      paperIds: refsToIds(e.paperRefs, papers),
+      paperIds: refsToIds(e.paperRefs, analyzed),
     })),
     debate: raw.debate ?? EMPTY_DEBATE,
     fallacies: raw.fallacies ?? [],

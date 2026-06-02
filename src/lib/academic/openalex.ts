@@ -20,6 +20,7 @@ interface OAWork {
   cited_by_count: number;
   doi: string | null;
   type: string | null;
+  is_retracted?: boolean;
   abstract_inverted_index: Record<string, number[]> | null;
   open_access?: { is_oa?: boolean };
   primary_location?: { landing_page_url?: string | null; source?: { display_name?: string } | null } | null;
@@ -38,7 +39,7 @@ export async function searchPapers(keywords: string, limit = 18): Promise<Paper[
     sort: "relevance_score:desc",
     filter: "from_publication_date:2005-01-01",
     select:
-      "id,display_name,publication_year,cited_by_count,doi,type,abstract_inverted_index,open_access,primary_location,authorships",
+      "id,display_name,publication_year,cited_by_count,doi,type,is_retracted,abstract_inverted_index,open_access,primary_location,authorships",
   });
   if (mailto) params.set("mailto", mailto);
 
@@ -67,6 +68,7 @@ export async function searchPapers(keywords: string, limit = 18): Promise<Paper[
       url: w.primary_location?.landing_page_url ?? (doi ? `https://doi.org/${doi}` : w.id),
       isOpenAccess: !!w.open_access?.is_oa,
       type: w.type ?? null,
+      isRetracted: !!w.is_retracted,
     };
   });
 }

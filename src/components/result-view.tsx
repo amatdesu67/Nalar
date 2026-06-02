@@ -45,6 +45,19 @@ export function ResultView({ result, onReset }: { result: AnalysisResult; onRese
         </div>
       )}
 
+      {/* Retraction notice */}
+      {result.retractedCount > 0 && (
+        <div className="flex items-start gap-3 rounded-xl border border-con/30 bg-con/[0.06] p-4 text-sm">
+          <AlertTriangle size={18} className="mt-0.5 shrink-0 text-con" />
+          <p className="text-con/90 text-[13px] leading-relaxed">
+            <span className="font-semibold text-con">
+              {result.retractedCount} paper ditarik (retracted)
+            </span>{" "}
+            ditemukan dan <strong>dikecualikan</strong> dari konsensus. Lihat tab Paper untuk detailnya.
+          </p>
+        </div>
+      )}
+
       {/* Consensus Dashboard */}
       <ConsensusMeter consensus={result.consensus} confidence={result.confidence} papers={result.papersAnalyzed} />
 

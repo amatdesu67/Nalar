@@ -6,14 +6,30 @@ import { formatNumber } from "@/lib/utils";
 
 export function PaperCard({ paper, quality, index }: { paper: Paper; quality?: QualityScore; index: number }) {
   return (
-    <div className="group glow-card rounded-2xl border border-border/60 bg-surface/20 p-5 transition-all duration-400 hover:border-accent/40 hover:bg-surface/40 hover:shadow-[0_8px_30px_rgba(0,0,0,0.25)]">
+    <div
+      className={
+        paper.isRetracted
+          ? "group glow-card rounded-2xl border border-con/50 bg-con/[0.06] p-5 transition-all duration-400"
+          : "group glow-card rounded-2xl border border-border/60 bg-surface/20 p-5 transition-all duration-400 hover:border-accent/40 hover:bg-surface/40 hover:shadow-[0_8px_30px_rgba(0,0,0,0.25)]"
+      }
+    >
+      {/* Retraction banner — paper ditarik, dikecualikan dari konsensus */}
+      {paper.isRetracted && (
+        <div className="mb-3 flex items-start gap-2 rounded-lg border border-con/40 bg-con/15 p-2.5">
+          <AlertTriangle size={14} className="mt-0.5 shrink-0 text-con" />
+          <p className="text-[12px] font-semibold leading-relaxed text-con">
+            Paper ini telah ditarik (retracted) — jangan dijadikan rujukan. Dikecualikan dari analisis konsensus.
+          </p>
+        </div>
+      )}
+
       {/* Header: Index + Quality Score */}
       <div className="flex items-center justify-between gap-3 mb-3">
         <span className="flex items-center gap-1.5 font-mono text-[10px] font-bold text-muted/60 uppercase tracking-widest">
           <BookOpen size={12} className="text-accent/60" />
           Paper #{index + 1}
         </span>
-        {quality && (
+        {quality && !paper.isRetracted && (
           <span
             className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 font-mono text-[11px] font-bold border transition-colors"
             style={{

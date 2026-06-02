@@ -17,6 +17,7 @@ function makePaper(overrides: Partial<Paper> = {}): Paper {
     url: "https://example.com",
     isOpenAccess: false,
     type: "article",
+    isRetracted: false,
     ...overrides,
   };
 }
