@@ -8,6 +8,7 @@ import { ConsensusMeter } from "@/components/confidence-meter";
 import { EvidenceColumn } from "@/components/evidence-column";
 import { DebateMode } from "@/components/debate-mode";
 import { PaperCard } from "@/components/paper-card";
+import { ShareCard } from "@/components/share-card";
 
 export function ResultView({ result, onReset }: { result: AnalysisResult; onReset?: () => void }) {
   const [eli, setEli] = useState(false);
@@ -24,12 +25,15 @@ export function ResultView({ result, onReset }: { result: AnalysisResult; onRese
             &ldquo;{result.question}&rdquo;
           </p>
         </div>
-        {onReset && (
-          <Button variant="outline" size="sm" onClick={onReset} className="shrink-0 border-border/60 hover:border-accent/40 hover:text-accent transition-all duration-300">
-            <RotateCcw size={13} />
-            Cari lagi
-          </Button>
-        )}
+        <div className="flex shrink-0 items-center gap-2">
+          <ShareCard result={result} />
+          {onReset && (
+            <Button variant="outline" size="sm" onClick={onReset} className="border-border/60 hover:border-accent/40 hover:text-accent transition-all duration-300">
+              <RotateCcw size={13} />
+              Cari lagi
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Low Evidence Warning */}
