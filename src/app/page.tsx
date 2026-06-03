@@ -1,6 +1,7 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
-import { FlaskConical, History, BarChart3, Trash2, AlertTriangle, Search, Download, Upload, GitCompare } from "lucide-react";
+import Link from "next/link";
+import { FlaskConical, History, BarChart3, Trash2, AlertTriangle, Search, Download, Upload, GitCompare, Flame } from "lucide-react";
 import type { AnalysisResult, ApiError } from "@/lib/types";
 import { CONSENSUS_LABEL } from "@/lib/labels";
 import { SearchBar } from "@/components/search-bar";
@@ -9,6 +10,7 @@ import { ResultView } from "@/components/result-view";
 import { CompareView } from "@/components/compare-view";
 import { useHistory } from "@/lib/use-history";
 import { readCache, writeCache } from "@/lib/result-cache";
+import { useTrending } from "@/lib/trending/use-trending";
 
 export default function Home() {
   const [mode, setMode] = useState<"single" | "compare">("single");
@@ -20,8 +22,10 @@ export default function Home() {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { items, add, clear, exportData, importData } = useHistory();
+  const { bumpIfTrending } = useTrending();
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
+  const ranFromUrl = useRef(false);
 
   const onImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -37,6 +41,19 @@ export default function Home() {
 
   useEffect(() => () => void (timer.current && clearInterval(timer.current)), []);
 
+  // Deep-link dari halaman "Lagi Ramai": /?q=<klaim> → langsung dianalisa.
+  useEffect(() => {
+    if (ranFromUrl.current) return;
+    const q = new URLSearchParams(window.location.search).get("q");
+    if (q && q.trim().length >= 5) {
+      ranFromUrl.current = true;
+      setQuery(q);
+      run(q);
+      window.history.replaceState(null, "", "/"); // bersihkan URL
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const recordHistory = (data: AnalysisResult) =>
     add({
       question: data.question,
@@ -47,6 +64,7 @@ export default function Home() {
 
   const run = async (q: string) => {
     setError(null);
+    bumpIfTrending(q); // catat bila klaim ini ada di daftar "Lagi Ramai"
 
     // Stale-while-revalidate: tampilkan hasil tersimpan dulu (instan, hemat API).
     // Fresh → langsung pakai tanpa fetch. Stale → tampilkan lalu validasi ulang.
@@ -199,6 +217,20 @@ export default function Home() {
 
         {/* Sidebar Widgets */}
         <aside className="w-full shrink-0 space-y-6 md:w-76">
+          {/* Lagi Ramai — klaim trending */}
+          <Link
+            href="/trending"
+            className="group flex items-center gap-3 rounded-2xl border border-accent/20 bg-accent/[0.06] p-4 transition-all hover:border-accent/40 hover:bg-accent/10"
+          >
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent/15 border border-accent/25">
+              <Flame size={17} className="text-accent" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-[13px] font-semibold text-fg group-hover:text-accent">Lagi Ramai</p>
+              <p className="text-[11px] text-muted">Klaim & hoaks viral untuk dicek</p>
+            </div>
+          </Link>
+
           {/* Database & Usage Statistics */}
           <div className="glass-panel glow-card rounded-2xl p-5 shadow-lg">
             <p className="mb-4 flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-widest text-muted">
