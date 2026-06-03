@@ -6,6 +6,7 @@ import { applyFilters, deriveBounds, emptyFilters, isActive, type PaperFilters }
 import { FilterPanel } from "@/components/filter-panel";
 import { SourceDiversity } from "@/components/source-diversity";
 import { ConsensusTimeline } from "@/components/consensus-timeline";
+import { FollowUpChat } from "@/components/follow-up-chat";
 import type { AnalysisResult } from "@/lib/types";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -141,6 +142,9 @@ export function ResultView({ result, onReset }: { result: AnalysisResult; onRese
 
           {/* Diversitas sumber: peringatan bila bukti terkonsentrasi */}
           <SourceDiversity papers={result.papers} />
+
+          {/* Chat lanjutan berbasis abstrak paper */}
+          <FollowUpChat result={result} />
         </TabsContent>
 
         {/* Evidence Tab */}
