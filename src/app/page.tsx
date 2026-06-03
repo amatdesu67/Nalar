@@ -229,7 +229,7 @@ export default function Home() {
         </main>
 
         {/* Sidebar Widgets */}
-        <aside className="w-full shrink-0 space-y-6 md:w-76">
+        <aside className="w-full shrink-0 space-y-6 md:w-[19rem]">
           {/* Akun (tampil hanya bila Supabase aktif) */}
           <AccountWidget auth={auth} />
 
