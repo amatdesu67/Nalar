@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Nalar — Cek Bukti Ilmiah",
+  "version": "1.0.0",
+  "description": "Highlight teks di web mana saja, klik kanan → Cek di Nalar untuk analisa bukti ilmiah.",
+  "permissions": ["contextMenus", "storage", "activeTab", "scripting"],
+  "host_permissions": ["https://nalar.vercel.app/*", "http://localhost/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Nalar",
+    "default_popup": "popup.html"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  }
+}

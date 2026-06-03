@@ -27,13 +27,21 @@ export function SearchBar({
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full space-y-4">
+      {/* Premium Search Container */}
       <div
-        className={`flex items-center gap-3 rounded-2xl border bg-surface/70 px-4 py-3.5 backdrop-blur transition-all ${
-          focused ? "border-accent/60 shadow-[0_0_0_4px_hsl(var(--accent)/0.08)]" : "border-border"
+        className={`flex items-center gap-3.5 rounded-2xl border bg-surface/30 px-5 py-4 backdrop-blur-xl transition-all duration-500 ${
+          focused
+            ? "border-accent/70 shadow-[0_0_25px_hsl(var(--accent)/0.12)] bg-surface/40 scale-[1.005]"
+            : "border-border/80"
         }`}
       >
-        <Search size={20} className="shrink-0 text-muted" />
+        <Search 
+          size={20} 
+          className={`shrink-0 transition-colors duration-300 ${
+            focused ? "text-accent" : "text-muted"
+          }`} 
+        />
         <input
           value={value}
           onChange={(e) => onChange(e.target.value)}
@@ -42,19 +50,27 @@ export function SearchBar({
           onKeyDown={(e) => e.key === "Enter" && submit()}
           placeholder="Tanyakan klaim atau topik debat apa pun…"
           disabled={loading}
-          className="flex-1 bg-transparent text-base text-fg outline-none placeholder:text-muted disabled:opacity-60"
+          className="flex-1 bg-transparent text-[16px] text-fg outline-none placeholder:text-muted/70 disabled:opacity-60 font-sans"
         />
         <button
           onClick={submit}
           disabled={loading || value.trim().length < 5}
-          className="flex h-9 items-center gap-1.5 rounded-lg bg-accent px-3.5 text-sm font-medium text-bg transition hover:brightness-110 disabled:opacity-40"
+          className="flex h-10 items-center gap-2 rounded-xl bg-gradient-to-r from-accent to-accent/90 px-4 text-xs font-semibold uppercase tracking-wider text-bg transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_4px_16px_hsl(var(--accent)/0.25)] active:scale-[0.98] disabled:opacity-30 disabled:hover:scale-100 disabled:hover:shadow-none shrink-0"
         >
-          {loading ? <Loader2 size={16} className="animate-spin" /> : <CornerDownLeft size={15} />}
-          {loading ? "Menganalisis" : "Cari"}
+          {loading ? (
+            <Loader2 size={15} className="animate-spin" />
+          ) : (
+            <CornerDownLeft size={14} className="transition-transform group-hover:translate-x-0.5" />
+          )}
+          {loading ? "Proses" : "Uji Klaim"}
         </button>
       </div>
 
-      <div className="mt-3 flex flex-wrap gap-2">
+      {/* Suggestion Chips */}
+      <div className="flex flex-wrap items-center gap-2.5">
+        <span className="font-mono text-[10px] uppercase tracking-widest text-muted/60 mr-1.5 font-bold">
+          Topik Populer:
+        </span>
         {EXAMPLES.map((ex) => (
           <button
             key={ex}
@@ -63,7 +79,7 @@ export function SearchBar({
               onSearch(ex);
             }}
             disabled={loading}
-            className="rounded-full border border-border bg-surface/40 px-3 py-1 text-xs text-muted transition hover:border-accent/40 hover:text-fg disabled:opacity-50"
+            className="rounded-full border border-border/60 bg-surface/20 px-3.5 py-1.5 text-xs text-muted/90 transition-all duration-300 hover:border-accent/40 hover:text-accent hover:bg-accent/5 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100 disabled:hover:bg-transparent"
           >
             {ex}
           </button>

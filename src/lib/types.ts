@@ -31,6 +31,9 @@ export interface Paper {
   url: string;
   isOpenAccess: boolean;
   type: string | null; // tipe mentah dari sumber
+  isRetracted: boolean; // paper ditarik — jangan dijadikan rujukan
+  field: string | null; // bidang ilmu (dari primary_topic.field OpenAlex)
+  institutions: string[]; // institusi unik penulis (untuk cek diversitas sumber)
 }
 
 // Hasil penilaian kualitas sumber (deterministik, tanpa AI).
@@ -65,6 +68,7 @@ export interface AnalysisResult {
   question: string;
   keywords: string[];
   papersAnalyzed: number;
+  retractedCount: number; // paper ditarik yang dikecualikan dari analisis
   lowEvidence: boolean;   // true bila paper relevan < 5 (hasil patut diragukan)
   consensus: ConsensusLevel;
   confidence: number;     // 0-100

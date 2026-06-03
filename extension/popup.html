@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body {
+      width: 340px; margin: 0; padding: 14px;
+      background: #0c0b0a; color: #f3ecdf;
+      font-family: system-ui, -apple-system, sans-serif; font-size: 13px;
+    }
+    h1 { font-size: 15px; margin: 0 0 2px; color: #f6a82a; }
+    p.sub { margin: 0 0 12px; font-size: 11px; color: #9c948420; color: #9c9484; }
+    textarea {
+      width: 100%; min-height: 70px; resize: vertical;
+      background: #161310; border: 1px solid #2a2520; border-radius: 10px;
+      color: #f3ecdf; padding: 9px 11px; font-size: 13px; font-family: inherit; outline: none;
+    }
+    textarea:focus { border-color: #f6a82a66; }
+    button {
+      margin-top: 10px; width: 100%; padding: 9px;
+      background: #f6a82a26; border: 1px solid #f6a82a4d; border-radius: 10px;
+      color: #f6a82a; font-weight: 600; font-size: 13px; cursor: pointer;
+    }
+    button:hover { background: #f6a82a3d; }
+    button:disabled { opacity: .45; cursor: default; }
+    #result { margin-top: 12px; display: none; }
+    .meter { font-size: 12px; padding: 8px 10px; border-radius: 9px; background: #161310; border: 1px solid #2a2520; margin-bottom: 8px; }
+    .meter b { color: #f6a82a; }
+    .summary { font-size: 12px; line-height: 1.55; color: #cfc7b8; }
+    .paper { font-size: 11px; color: #9c9484; margin-top: 6px; padding-left: 8px; border-left: 2px solid #2a2520; }
+    .paper a { color: #cfc7b8; text-decoration: none; }
+    .err { color: #e0796b; font-size: 12px; margin-top: 8px; }
+    .muted { font-size: 11px; color: #6f685d; margin-top: 8px; }
+    a.link { color: #f6a82a; font-size: 11px; }
+    .spin { display: inline-block; animation: s 1s linear infinite; } @keyframes s { to { transform: rotate(360deg);} }
+  </style>
+</head>
+<body>
+  <h1>Nalar</h1>
+  <p class="sub">Cek klaim dengan bukti ilmiah</p>
+  <textarea id="claim" placeholder="Tempel atau ketik klaim untuk dicek…"></textarea>
+  <button id="go">Analisa</button>
+  <div id="result"></div>
+  <p class="muted">Tip: highlight teks di halaman, klik kanan → “Cek di Nalar”. <a class="link" id="opts" href="#">Pengaturan</a></p>
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "name": "nalar-whatsapp-bot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Bot WhatsApp Nalar via Baileys (QR pairing, nomor pribadi)",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.7.9",
+    "pino": "^9.5.0",
+    "qrcode-terminal": "^0.12.0"
+  }
+}

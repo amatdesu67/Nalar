@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>Pengaturan Nalar</title>
+  <style>
+    :root { color-scheme: dark; }
+    body { max-width: 460px; margin: 40px auto; padding: 0 20px;
+      background: #0c0b0a; color: #f3ecdf; font-family: system-ui, sans-serif; font-size: 14px; }
+    h1 { color: #f6a82a; font-size: 20px; }
+    label { display: block; margin: 18px 0 6px; font-weight: 600; }
+    input { width: 100%; padding: 9px 11px; background: #161310; border: 1px solid #2a2520;
+      border-radius: 9px; color: #f3ecdf; font-size: 13px; outline: none; }
+    input:focus { border-color: #f6a82a66; }
+    small { color: #9c9484; display: block; margin-top: 5px; line-height: 1.5; }
+    button { margin-top: 22px; padding: 10px 18px; background: #f6a82a26;
+      border: 1px solid #f6a82a4d; border-radius: 9px; color: #f6a82a; font-weight: 600; cursor: pointer; }
+    #saved { color: #7bbf6a; margin-left: 12px; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <h1>Pengaturan Nalar</h1>
+  <label for="base">URL Nalar</label>
+  <input id="base" type="url" placeholder="https://nalar.vercel.app" />
+  <small>Alamat instance Nalar yang dipakai. Default: https://nalar.vercel.app</small>
+
+  <label for="apiKey">API Key (opsional)</label>
+  <input id="apiKey" type="password" placeholder="kosongkan untuk buka di web app" />
+  <small>Jika diisi, popup menampilkan ringkasan langsung lewat API publik (/api/v1/analyze).
+    Jika kosong, klaim dibuka di web app untuk dianalisa.</small>
+
+  <div><button id="save">Simpan</button><span id="saved"></span></div>
+  <script src="options.js"></script>
+</body>
+</html>

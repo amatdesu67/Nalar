@@ -1,6 +1,12 @@
 "use client";
-import { useState } from "react";
-import { GraduationCap, Sparkles, AlertCircle, AlertTriangle, RotateCcw } from "lucide-react";
+import { useMemo, useState } from "react";
+import { GraduationCap, Sparkles, AlertCircle, AlertTriangle, RotateCcw, MessageSquareQuote, Languages, Download, SlidersHorizontal } from "lucide-react";
+import { toBibTeXAll } from "@/lib/cite";
+import { applyFilters, deriveBounds, emptyFilters, isActive, type PaperFilters } from "@/lib/filter-papers";
+import { FilterPanel } from "@/components/filter-panel";
+import { SourceDiversity } from "@/components/source-diversity";
+import { ConsensusTimeline } from "@/components/consensus-timeline";
+import { FollowUpChat } from "@/components/follow-up-chat";
 import type { AnalysisResult } from "@/lib/types";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -8,28 +14,56 @@ import { ConsensusMeter } from "@/components/confidence-meter";
 import { EvidenceColumn } from "@/components/evidence-column";
 import { DebateMode } from "@/components/debate-mode";
 import { PaperCard } from "@/components/paper-card";
+import { ShareCard } from "@/components/share-card";
 
 export function ResultView({ result, onReset }: { result: AnalysisResult; onReset?: () => void }) {
   const [eli, setEli] = useState(false);
+  const [translateAll, setTranslateAll] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const bounds = useMemo(() => deriveBounds(result.papers), [result.papers]);
+  const [filters, setFilters] = useState<PaperFilters>(emptyFilters);
+  const filteredPapers = useMemo(() => applyFilters(result.papers, filters), [result.papers, filters]);
+  const filtersActive = isActive(filters, bounds);
   const qualityOf = (id: string) => result.quality.find((q) => q.paperId === id);
 
-  return (
-    <div className="animate-fade-up space-y-6">
-      {onReset && (
-        <div className="flex justify-end">
-          <Button variant="outline" size="sm" onClick={onReset}>
-            <RotateCcw size={14} />
-            Cari lagi
-          </Button>
-        </div>
-      )}
+  function exportAllCitations() {
+    const blob = new Blob([toBibTeXAll(result.papers)], { type: "application/x-bibtex" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "nalar-sitasi.bib";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
+  return (
+    <div className="animate-fade-up space-y-7">
+      {/* Top bar: Question echo + Reset */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <MessageSquareQuote size={16} className="text-accent shrink-0" />
+          <p className="text-sm font-serif italic text-muted truncate">
+            &ldquo;{result.question}&rdquo;
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <ShareCard result={result} />
+          {onReset && (
+            <Button variant="outline" size="sm" onClick={onReset} className="border-border/60 hover:border-accent/40 hover:text-accent transition-all duration-300">
+              <RotateCcw size={13} />
+              Cari lagi
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Low Evidence Warning */}
       {result.lowEvidence && (
-        <div className="flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-300">
-          <AlertTriangle size={16} className="mt-0.5 shrink-0" />
+        <div className="flex items-start gap-3 rounded-xl border border-amber-500/25 bg-amber-500/5 p-4 text-sm text-amber-300 backdrop-blur">
+          <AlertTriangle size={18} className="mt-0.5 shrink-0 text-amber-400" />
           <div>
-            <p className="font-medium">Bukti terbatas</p>
-            <p className="text-amber-200/80">
+            <p className="font-semibold text-amber-300">Bukti terbatas</p>
+            <p className="mt-1 text-amber-200/75 text-[13px] leading-relaxed">
               Hanya {result.papersAnalyzed} paper relevan yang ditemukan. Kesimpulan di bawah berisiko menyesatkan —
               perlakukan sebagai indikasi awal, bukan jawaban final, dan verifikasi ke sumber asli.
             </p>
@@ -37,8 +71,23 @@ export function ResultView({ result, onReset }: { result: AnalysisResult; onRese
         </div>
       )}
 
+      {/* Retraction notice */}
+      {result.retractedCount > 0 && (
+        <div className="flex items-start gap-3 rounded-xl border border-con/30 bg-con/[0.06] p-4 text-sm">
+          <AlertTriangle size={18} className="mt-0.5 shrink-0 text-con" />
+          <p className="text-con/90 text-[13px] leading-relaxed">
+            <span className="font-semibold text-con">
+              {result.retractedCount} paper ditarik (retracted)
+            </span>{" "}
+            ditemukan dan <strong>dikecualikan</strong> dari konsensus. Lihat tab Paper untuk detailnya.
+          </p>
+        </div>
+      )}
+
+      {/* Consensus Dashboard */}
       <ConsensusMeter consensus={result.consensus} confidence={result.confidence} papers={result.papersAnalyzed} />
 
+      {/* Tabbed Results */}
       <Tabs defaultValue="summary" className="w-full">
         <TabsList>
           <TabsTrigger value="summary">Ringkasan</TabsTrigger>
@@ -47,55 +96,128 @@ export function ResultView({ result, onReset }: { result: AnalysisResult; onRese
           <TabsTrigger value="papers">Paper ({result.papers.length})</TabsTrigger>
         </TabsList>
 
-        {/* Ringkasan */}
-        <TabsContent value="summary" className="mt-5 space-y-4">
-          <div className="rounded-xl border border-border bg-surface/40 p-5">
-            <div className="mb-3 flex items-center justify-between">
-              <h3 className="flex items-center gap-2 font-serif text-base text-fg">
-                <Sparkles size={15} className="text-accent" />
-                {eli ? "Penjelasan sederhana" : "Ringkasan bukti"}
+        {/* Summary Tab */}
+        <TabsContent value="summary" className="mt-6 space-y-5">
+          <div className="glass-panel glow-card rounded-2xl p-6 shadow-xl relative overflow-hidden">
+            {/* Ambient glow */}
+            <div className="absolute bottom-0 right-0 w-40 h-32 bg-accent/4 rounded-full filter blur-3xl pointer-events-none" />
+
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="flex items-center gap-2.5 font-serif text-lg font-bold text-fg">
+                <Sparkles size={16} className="text-accent" />
+                {eli ? "Penjelasan Sederhana" : "Ringkasan Bukti Ilmiah"}
               </h3>
-              <Button variant="outline" size="sm" onClick={() => setEli((v) => !v)}>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setEli((v) => !v)}
+                className="border-border/60 hover:border-accent/40 hover:text-accent transition-all duration-300"
+              >
                 <GraduationCap size={14} />
-                {eli ? "Mode akademik" : "Jelaskan untuk anak SMA"}
+                {eli ? "Mode akademik" : "Mode SMA"}
               </Button>
             </div>
-            <p className="text-[15px] leading-relaxed text-fg/90">{eli ? result.eli : result.summary}</p>
+            <p className="text-[15px] leading-[1.8] text-fg/90 relative">{eli ? result.eli : result.summary}</p>
           </div>
 
+          {/* Caveats */}
           {result.caveats.length > 0 && (
-            <div className="rounded-xl border border-border bg-surface/30 p-4">
-              <p className="mb-2 flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-muted">
-                <AlertCircle size={12} /> Batasan analisis
+            <div className="rounded-2xl border border-border/60 bg-surface/20 p-5">
+              <p className="mb-3 flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-widest text-muted">
+                <AlertCircle size={13} className="text-amber-500/70" /> Batasan Analisis
               </p>
-              <ul className="space-y-1.5 text-sm text-muted">
+              <ul className="space-y-2 text-[13px] text-muted/90 leading-relaxed">
                 {result.caveats.map((c, i) => (
-                  <li key={i} className="flex gap-2">
-                    <span>·</span>
-                    {c}
+                  <li key={i} className="flex gap-2.5">
+                    <span className="text-amber-500/60 font-bold shrink-0 select-none">•</span>
+                    <span>{c}</span>
                   </li>
                 ))}
               </ul>
             </div>
           )}
+
+          {/* Timeline: pergeseran pandangan ilmiah dari tahun ke tahun */}
+          <ConsensusTimeline result={result} />
+
+          {/* Diversitas sumber: peringatan bila bukti terkonsentrasi */}
+          <SourceDiversity papers={result.papers} />
+
+          {/* Chat lanjutan berbasis abstrak paper */}
+          <FollowUpChat result={result} />
         </TabsContent>
 
-        {/* Bukti dua sisi */}
-        <TabsContent value="evidence" className="mt-5 grid gap-4 md:grid-cols-2">
+        {/* Evidence Tab */}
+        <TabsContent value="evidence" className="mt-6 grid gap-5 md:grid-cols-2">
           <EvidenceColumn title="Mendukung klaim" side="pro" items={result.supporting} papers={result.papers} />
           <EvidenceColumn title="Menentang klaim" side="con" items={result.opposing} papers={result.papers} />
         </TabsContent>
 
-        {/* Debate */}
-        <TabsContent value="debate" className="mt-5">
+        {/* Debate Tab */}
+        <TabsContent value="debate" className="mt-6">
           <DebateMode result={result} />
         </TabsContent>
 
-        {/* Paper */}
-        <TabsContent value="papers" className="mt-5 grid gap-3 sm:grid-cols-2">
-          {result.papers.map((p, i) => (
-            <PaperCard key={p.id} paper={p} quality={qualityOf(p.id)} index={i} />
-          ))}
+        {/* Papers Tab */}
+        <TabsContent value="papers" className="mt-6 space-y-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFilters((v) => !v)}
+              className={`border-border/60 transition-all duration-300 ${showFilters || filtersActive ? "border-accent/40 text-accent" : "hover:border-accent/40 hover:text-accent"}`}
+            >
+              <SlidersHorizontal size={14} />
+              Filter{filtersActive ? ` (${filteredPapers.length}/${result.papers.length})` : ""}
+            </Button>
+            <div className="ml-auto flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={exportAllCitations}
+                className="border-border/60 hover:border-accent/40 hover:text-accent transition-all duration-300"
+              >
+                <Download size={14} />
+                Export sitasi (.bib)
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setTranslateAll((v) => !v)}
+                className={`border-border/60 transition-all duration-300 ${translateAll ? "border-accent/40 text-accent" : "hover:border-accent/40 hover:text-accent"}`}
+              >
+                <Languages size={14} />
+                {translateAll ? "Tampilkan bahasa asli" : "Semua dalam Bahasa Indonesia"}
+              </Button>
+            </div>
+          </div>
+
+          {showFilters && (
+            <FilterPanel
+              bounds={bounds}
+              filters={filters}
+              onChange={setFilters}
+              onReset={() => setFilters(emptyFilters())}
+            />
+          )}
+
+          {filtersActive && (
+            <p className="text-[12px] text-muted">
+              Menampilkan <span className="font-semibold text-fg">{filteredPapers.length}</span> dari {result.papers.length} paper.
+            </p>
+          )}
+
+          {filteredPapers.length === 0 ? (
+            <p className="rounded-xl border border-border/60 bg-surface/20 p-6 text-center text-sm text-muted">
+              Tidak ada paper yang cocok dengan filter. Coba longgarkan filternya.
+            </p>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {filteredPapers.map((p, i) => (
+                <PaperCard key={p.id} paper={p} quality={qualityOf(p.id)} index={i} autoTranslate={translateAll} />
+              ))}
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>

@@ -1,4 +1,4 @@
-// Lapisan provider AI tunggal. Pilih lewat env AI_PROVIDER.
+﻿// Lapisan provider AI tunggal. Pilih lewat env AI_PROVIDER.
 // - "groq"      : gratis, cepat (default). Model: meta-llama/llama-4-scout-17b-16e-instruct
 // - "openai"    : OpenAI resmi
 // - "anthropic" : Claude
@@ -6,7 +6,7 @@
 
 type Provider = "groq" | "openai" | "anthropic";
 
-interface ChatOptions {
+export interface ChatOptions {
   system: string;
   user: string;
   maxTokens: number;
@@ -123,3 +123,6 @@ export function activeProvider(): string {
   const provider = (process.env.AI_PROVIDER as Provider) || "groq";
   return `${provider}/${process.env.AI_MODEL || DEFAULTS[provider]?.model}`;
 }
+
+
+
