@@ -8,6 +8,7 @@ import { LoadingState } from "@/components/loading-state";
 import { ResultView } from "@/components/result-view";
 import { CompareView } from "@/components/compare-view";
 import { useHistory } from "@/lib/use-history";
+import { readCache, writeCache } from "@/lib/result-cache";
 
 export default function Home() {
   const [mode, setMode] = useState<"single" | "compare">("single");
@@ -36,10 +37,28 @@ export default function Home() {
 
   useEffect(() => () => void (timer.current && clearInterval(timer.current)), []);
 
+  const recordHistory = (data: AnalysisResult) =>
+    add({
+      question: data.question,
+      consensus: data.consensus,
+      confidence: data.confidence,
+      papers: data.papersAnalyzed,
+    });
+
   const run = async (q: string) => {
-    setLoading(true);
-    setResult(null);
     setError(null);
+
+    // Stale-while-revalidate: tampilkan hasil tersimpan dulu (instan, hemat API).
+    // Fresh → langsung pakai tanpa fetch. Stale → tampilkan lalu validasi ulang.
+    const cached = readCache(q);
+    if (cached) {
+      setResult(cached.result);
+      recordHistory(cached.result);
+      if (!cached.stale) return; // masih segar — tidak perlu memanggil API
+    }
+
+    setLoading(!cached); // saat ada cache stale, revalidasi diam-diam di latar
+    if (!cached) setResult(null);
     setStep(0);
     setElapsed(0);
     // Satu timer untuk progres langkah (perkiraan) + hitung detik berlalu,
@@ -61,19 +80,20 @@ export default function Home() {
       const data = (await res.json()) as AnalysisResult | ApiError;
       if (!res.ok || "error" in data) throw new Error(("error" in data && data.error) || "Gagal menganalisis.");
       setResult(data);
-      add({
-        question: data.question,
-        consensus: data.consensus,
-        confidence: data.confidence,
-        papers: data.papersAnalyzed,
-      });
+      writeCache(q, data);
+      if (!cached) recordHistory(data); // saat revalidasi cache, jangan dobel di riwayat
     } catch (e) {
-      // Bedakan gangguan jaringan dari error server agar pesannya membantu.
-      const msg = e instanceof Error ? e.message : "";
-      if (e instanceof TypeError || /failed to fetch|network/i.test(msg)) {
-        setError("Tidak bisa terhubung ke server. Cek koneksi internet kamu, lalu coba lagi.");
+      // Saat revalidasi cache stale gagal, biarkan hasil lama tetap tampil tanpa error.
+      if (cached) {
+        // diam: pengguna sudah melihat hasil tersimpan.
       } else {
-        setError(msg || "Terjadi kesalahan tak terduga. Coba lagi.");
+        // Bedakan gangguan jaringan dari error server agar pesannya membantu.
+        const msg = e instanceof Error ? e.message : "";
+        if (e instanceof TypeError || /failed to fetch|network/i.test(msg)) {
+          setError("Tidak bisa terhubung ke server. Cek koneksi internet kamu, lalu coba lagi.");
+        } else {
+          setError(msg || "Terjadi kesalahan tak terduga. Coba lagi.");
+        }
       }
     } finally {
       timer.current && clearInterval(timer.current);

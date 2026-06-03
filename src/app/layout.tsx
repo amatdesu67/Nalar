@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { PwaManager } from "@/components/pwa";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://nalar.vercel.app";
 const TITLE = "Nalar — Mesin Pencari Bukti Ilmiah";
@@ -42,12 +43,26 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+  appleWebApp: {
+    capable: true,
+    title: "Nalar",
+    statusBarStyle: "black-translucent",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0c0b0a",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="id">
-      <body className="relative min-h-screen antialiased">{children}</body>
+      <body className="relative min-h-screen antialiased">
+        {children}
+        <PwaManager />
+      </body>
     </html>
   );
 }
