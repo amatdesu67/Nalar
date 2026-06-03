@@ -156,11 +156,43 @@ body::before {
   -webkit-text-fill-color: transparent;
 }
 
+/* Headline emas dengan kilau bergerak halus */
+.text-gradient-gold-shine {
+  background: linear-gradient(
+    110deg,
+    hsl(40 20% 78%) 0%,
+    #ffffff 18%,
+    hsl(var(--accent)) 42%,
+    #fff7e6 58%,
+    hsl(40 20% 78%) 100%
+  );
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: gold-shine 7s linear infinite;
+}
+
+@keyframes gold-shine {
+  to { background-position: -220% center; }
+}
+
 /* Animations */
 @keyframes float {
   0% { transform: translate(0, 0) scale(1); }
   50% { transform: translate(40px, -60px) scale(1.1); }
   100% { transform: translate(-20px, 30px) scale(0.95); }
+}
+
+/* Hormati preferensi gerak minimal pengguna */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .text-gradient-gold-shine { animation: none; background-position: 0 center; }
 }
 
 .font-serif { 

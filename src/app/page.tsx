@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { FlaskConical, History, BarChart3, Trash2, AlertTriangle, Search, Download, Upload, GitCompare, Flame } from "lucide-react";
+import { FlaskConical, History, BarChart3, Trash2, AlertTriangle, Search, Download, Upload, GitCompare, Flame, Scale, ShieldCheck, Sparkles } from "lucide-react";
 import type { AnalysisResult, ApiError } from "@/lib/types";
 import { CONSENSUS_LABEL } from "@/lib/labels";
 import { SearchBar } from "@/components/search-bar";
@@ -160,13 +160,58 @@ export default function Home() {
             </div>
             
             {!result && !loading && (
-              <div className="animate-fade-up space-y-3">
-                <h2 className="max-w-2xl font-serif text-3xl font-bold tracking-tight text-gradient-gold md:text-4xl leading-tight">
-                  Berargumen dengan Bukti, Bukan Opini.
+              <div className="space-y-5">
+                {/* Eyebrow badge */}
+                <div
+                  className="animate-fade-up inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent/[0.06] px-3 py-1.5 backdrop-blur"
+                  style={{ animationDelay: "0.05s" }}
+                >
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent/70" />
+                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-accent" />
+                  </span>
+                  <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-accent/90">
+                    250 juta+ paper · analisis netral
+                  </span>
+                </div>
+
+                {/* Headline */}
+                <h2
+                  className="animate-fade-up max-w-2xl font-serif text-4xl font-bold leading-[1.05] tracking-tight md:text-5xl"
+                  style={{ animationDelay: "0.12s" }}
+                >
+                  <span className="text-gradient-gold-shine">Berargumen</span> dengan{" "}
+                  <span className="text-gradient-gold-shine">Bukti</span>,
+                  <br className="hidden sm:block" /> bukan{" "}
+                  <span className="text-fg/35">Opini.</span>
                 </h2>
-                <p className="max-w-xl text-[14px] leading-relaxed text-muted">
-                  Cari jawaban berbasis paper akademik global. Uji keabsahan klaim, opini, dan topik debat secara objektif dengan dukungan data netral, analisis dua sisi, tingkat konsensus, dan penilaian kualitas sumber — langsung dari database 250 juta+ paper terindeks.
+
+                {/* Deskripsi */}
+                <p
+                  className="animate-fade-up max-w-xl text-[14px] leading-relaxed text-muted"
+                  style={{ animationDelay: "0.2s" }}
+                >
+                  Uji keabsahan klaim, opini, dan topik debat secara objektif — langsung dari database{" "}
+                  <span className="font-semibold text-fg/80">250 juta+ paper</span> akademik global.
                 </p>
+
+                {/* Chip fitur */}
+                <div className="animate-fade-up flex flex-wrap gap-2" style={{ animationDelay: "0.28s" }}>
+                  {[
+                    { icon: Scale, label: "Dua sisi argumen" },
+                    { icon: BarChart3, label: "Tingkat konsensus" },
+                    { icon: ShieldCheck, label: "Kualitas sumber" },
+                    { icon: Sparkles, label: "Bebas bias" },
+                  ].map(({ icon: Icon, label }) => (
+                    <span
+                      key={label}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-border/60 bg-surface/30 px-2.5 py-1.5 text-[11px] font-medium text-muted/90 backdrop-blur transition-colors hover:border-accent/30 hover:text-fg"
+                    >
+                      <Icon size={12} className="text-accent/70" />
+                      {label}
+                    </span>
+                  ))}
+                </div>
               </div>
             )}
           </header>
