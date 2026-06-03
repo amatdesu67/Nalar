@@ -10,6 +10,8 @@ import { ResultView } from "@/components/result-view";
 import { CompareView } from "@/components/compare-view";
 import { LinkExtractor } from "@/components/link-extractor";
 import { useHistory } from "@/lib/use-history";
+import { useAuth } from "@/lib/auth/use-auth";
+import { AccountWidget } from "@/components/account";
 import { readCache, writeCache } from "@/lib/result-cache";
 import { useTrending } from "@/lib/trending/use-trending";
 
@@ -22,7 +24,8 @@ export default function Home() {
   const [showAll, setShowAll] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const { items, add, clear, exportData, importData } = useHistory();
+  const auth = useAuth();
+  const { items, add, clear, exportData, importData } = useHistory(auth.user);
   const { bumpIfTrending } = useTrending();
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -227,6 +230,9 @@ export default function Home() {
 
         {/* Sidebar Widgets */}
         <aside className="w-full shrink-0 space-y-6 md:w-76">
+          {/* Akun (tampil hanya bila Supabase aktif) */}
+          <AccountWidget auth={auth} />
+
           {/* Lagi Ramai — klaim trending */}
           <Link
             href="/trending"
