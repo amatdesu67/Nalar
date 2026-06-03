@@ -8,6 +8,7 @@ import { SearchBar } from "@/components/search-bar";
 import { LoadingState } from "@/components/loading-state";
 import { ResultView } from "@/components/result-view";
 import { CompareView } from "@/components/compare-view";
+import { LinkExtractor } from "@/components/link-extractor";
 import { useHistory } from "@/lib/use-history";
 import { readCache, writeCache } from "@/lib/result-cache";
 import { useTrending } from "@/lib/trending/use-trending";
@@ -191,7 +192,16 @@ export default function Home() {
           <div className="glass-panel rounded-2xl p-5 md:p-6 shadow-xl relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-full filter blur-xl pointer-events-none transition-opacity group-hover:bg-accent/8" />
             {mode === "single" ? (
-              <SearchBar onSearch={run} loading={loading} value={query} onChange={setQuery} />
+              <>
+                <SearchBar onSearch={run} loading={loading} value={query} onChange={setQuery} />
+                <LinkExtractor
+                  onPick={(c) => {
+                    setQuery(c);
+                    run(c);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                />
+              </>
             ) : (
               <CompareView />
             )}
